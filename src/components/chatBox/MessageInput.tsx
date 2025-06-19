@@ -18,7 +18,7 @@ const MessageInput: React.FC<{onSend: (text: string) => void}> = ({ onSend }) =>
     }
   }
   return (
-    <form onSubmit={HandleSubmitInput} className="flex absolute w-full p-5 -bottom-10 left-[50%] transform -translate-1/2 gap-3 items-end">
+    <form onSubmit={HandleSubmitInput} className="flex absolute w-full p-5 -bottom-10 left-[50%] transform -translate-1/2 gap-3 items-center">
       <div style={{boxShadow:'0px 0px 7px 3px rgb(235, 235, 235)'}} className="inputGroup bg-white overflow-hidden rounded-[20px] flex-1 relative">
         <Smile className="absolute left-2 bottom-2" />
         <Textarea value={message} onChange={(e) => setMessage(e.target.value)} className="rounded-[20px] !border-none px-10 min-h-[40px] max-h-[100px w-full resize-none break-all" placeholder="Type a message"/>

@@ -32,25 +32,25 @@ const ChatBox: React.FC<ChatBoxProps> = ({
   // Komponent qaytarish 
   const [backToUserList,setBackToUserList] = useState(true)
   useEffect(()=>{
+    
     if (userChatOpen && backToUserList==true) {
       setBackToUserList(false)
     }
-    console.log(backToUserList);
-    
   },[userChatOpen])
+  
   return (
-    <div className={`${currentUser ? 'max-[800px]:absolute max-[800px]:w-full' : 'max-[800px]:hidden'} ${backToUserList && 'max-[800px]:hidden'} left-0 top-0 rounded-md h-full overflow-hidden !bg-slate-50 flex flex-col flex-1 border-slate-100`}>
+    <div className={`${currentUser ? 'max-[800px]:absolute left-0 top-0 max-[800px]:w-full ' : 'max-[800px]:hidden '}
+    ${backToUserList && 'max-[800px]:hidden '} overflow-hidde rounded-md !bg-slate-50 h-full flex flex-col flex-1 border-slate-100`}>
       {/* Chat header qismi */}
       <ChatHeader 
       setBackToUserList={setBackToUserList}
-        avatar={currentUser?.photoURL || 'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg'} 
-        isActive={true} 
-        username={currentUser?.username || currentUser?.name || 'Evansite95'}
+        avatar={currentUser?.photoURL || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-439DWYBIlMKtzkqbQqBpg9YNVgT13pkhCoPXmad5lg3Dk0mdmBLPlPGLUYQhF73sNH4&usqp=CAU'} 
+        isActive={false} 
+        username={currentUser?.username || currentUser?.name || 'Username not found'}
       />
-      
       {/* Chat ichki qismi */}
-      <div className="p-5 relative gap-4 flex-1 flex flex-col">
-        <MessageItem
+      <div className="p-5 relative min-h-0 gap-4 flex-1">
+          <MessageItem
           messages={messages}
           currentUserId={currentUserId}
           userChatOpen={userChatOpen}

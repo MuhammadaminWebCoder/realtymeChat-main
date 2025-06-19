@@ -3,7 +3,7 @@ import type React from "react"
 
 const ProfileHeader:React.FC<{ProfileInfoClose:()=> void}> = ({ProfileInfoClose}) => {
   return (
-    <div className="flex items-center text-lg font-semibold">
+    <div className="flex sticky bg-white -top-0 items-center text-lg font-semibold me-1 pb-4">
       <X onClick={ProfileInfoClose} className="text-slate-400 cursor-pointer me-2" /> <p>Contact info</p>
     </div>
   )

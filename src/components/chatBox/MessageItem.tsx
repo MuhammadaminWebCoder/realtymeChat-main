@@ -50,10 +50,9 @@ const MessageItem: React.FC<Props> = ({messages,currentUserId,userChatOpen,setMe
 };
 
       return (
-        // h-[calc(100%-60px)]
-        <div className=" h-full" onClick={() => setSelectedId(null)}>
+        <div className="h-[calc(100%-60px)] min-h-0 pr-2 -mr-4 overflow-y-auto" onClick={() => setSelectedId(null)}>
           <div
-            className="min-[450px]:p-4 space-y-3 overflow-y-auto h-full"
+            className="min-[450px]:p-4 !pt-0 space-y-3 h-full"
             ref={scrollRef}
           >
             {messages.map((message, index) => {

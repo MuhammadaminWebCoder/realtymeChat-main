@@ -1,12 +1,7 @@
 import { EllipsisVertical } from "lucide-react"
 
 const ActiveUserAvatars = () => {
-  const avatar = [
-    'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg',
-    'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg',
-    'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg',
-    'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg',
-    'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg',
+  const avatar:string[] = [
   ]
   return (
     <div>
@@ -15,10 +10,10 @@ const ActiveUserAvatars = () => {
           <EllipsisVertical className="text-green-500 cursor-pointer"/>
         </div>
         <div className="flex gap-4 my-2">
-            {avatar.map((item:string,index:number) => <div key={index} className="relative rounded-full w-10 h-10">
+            {avatar.length > 0 ? (avatar?.map((item:string | undefined,index:number) => <div key={index} className="relative rounded-full w-10 h-10">
               <img className="rounded-full w-full h-full" src={item} alt="users active  img" />
               <span className="border w-3 h-3 rounded-full bg-green-500 absolute right-0 bottom-0"></span>
-            </div>)}
+            </div>)) : (<p className="font-semibold text-md text-slate-400">No Active User</p>)}
         </div>
     </div>
   )

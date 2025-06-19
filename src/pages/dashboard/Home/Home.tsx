@@ -69,10 +69,10 @@ if (currentUserId === userChatOpen) return;
 
 
   return (
-    <div className="chatHome flex w-full bg-slate-50 h-screen gap-5 min-[600px]:p-5">
+    <div className="chatHome flex w-full bg-slate-50 h-full gap-5 min-[600px]:p-5">
       <UsersListBox />
       <ChatBox
-        currentUser={receiverUser ?? {}}
+        currentUser={receiverUser}
         currentUserId={currentUserId}
         messages={messages}
         onSend={handleSend}
