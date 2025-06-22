@@ -7,7 +7,7 @@ import type { MediaLinksType } from "@/types/ContactInfoType";
 const MediaLinks:React.FC<{mediaData:MediaLinksType}> = ({mediaData}) => {
 
   return (
-    <div className="mb-4">
+    <div className="mb-4 px-5">
       <div className="w-25 overflow-hidden mt-7 mb-2 rounded-full mx-auto h-25"><img className="object-cover w-full h-full" src={mediaData?.avatarImg} alt="user more avatar" /></div>
       <p className="text-xl text-center my-1 font-semibold">{mediaData?.username || 'Username not found'}</p>
       <p className="text-sm text-center text-slate-400">{mediaData?.isactive ? 'Online' : 'Offline'}</p>
@@ -20,7 +20,7 @@ const MediaLinks:React.FC<{mediaData:MediaLinksType}> = ({mediaData}) => {
           <p className="text-slate-400 mb-1 w-[80%] text-sm line-clamp-1">{mediaData?.aboutBio}</p>
 
           <p className="font-semibold text-sm">Media, Links and doc</p>
-          <div className="gap-2 grid grid-cols-4">
+          <div className="gap-2 grid grid-cols-4 mt-2">
             {mediaData?.mediaPhoto?.splice(0,4).map((item:string,ind:number) => (
               <img className="rounded-md w-full" key={ind} src={item} alt="media more" />
             ))}

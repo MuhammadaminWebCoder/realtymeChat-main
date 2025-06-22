@@ -1,56 +1,91 @@
 import { useState } from "react";
-import { auth, googleProvider, appleProvider } from "@/firebase";
-import { signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { AppleIcon, Github } from "lucide-react";
-import { Link } from "react-router-dom";
-import type { UserDataType } from "@/types/userLoginData";
+import { auth, storage, googleProvider, appleProvider } from "@/firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+  signInWithPopup,
+} from "firebase/auth";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Github, AppleIcon } from "lucide-react";
 import { writeUserToDB } from "@/services/writeUserToDB";
+import { setUserOnlineStatus } from "@/services/onlineStatus";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
+const DEFAULT_IMAGE =
+  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-439DWYBIlMKtzkqbQqBpg9YNVgT13pkhCoPXmad5lg3Dk0mdmBLPlPGLUYQhF73sNH4&usqp=CAU";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("")
- 
+  const [password, setPassword] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const navigate = useNavigate();
+
+  const validate = () => {
+    if (!email.includes("@")) return "Email noto‘g‘ri!";
+    if (password.length < 6) return "Parol 6 belgidan kam bo‘lmasligi kerak!";
+    if (!isLogin && username.trim().length < 3) return "Username kamida 3ta belgi bo‘lishi kerak!";
+    return null;
+  };
+
+  const uploadImage = async (uid: string): Promise<string> => {
+    if (!file) return DEFAULT_IMAGE;
+
+    const imgRef = storageRef(storage, `users/${uid}/avatar.jpg`);
+    await uploadBytes(imgRef, file);
+    return await getDownloadURL(imgRef);
+  };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      if (isLogin) {
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        const user = result.user;
-        const accessToken = await user.getIdToken();
-        const userData:UserDataType = {
-          uid: user.uid,
-          email: user.email,
-          photoURL: user.photoURL,
-          displayName: user.displayName,
-          username:username
-        }
-        localStorage.setItem("userData", JSON.stringify(userData));
-        localStorage.setItem("accessToken", accessToken);
-        await writeUserToDB(userData);
-        
-      } else {
-        const result = await createUserWithEmailAndPassword(auth, email, password);
-        const user = result.user;
-        const accessToken = await user.getIdToken();
-        const userData:UserDataType = {
-          uid: user.uid,
-          email: user.email,
-          photoURL: user.photoURL,
-          displayName: user.displayName,
-          username:username
-        }
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("userData", JSON.stringify(userData));
-        await writeUserToDB(userData);
+    const error = validate();
+    if (error) return toast.error(error);
 
+    try {
+      let user;
+      let finalPhotoURL = DEFAULT_IMAGE;
+
+      if (isLogin) {
+        const res = await signInWithEmailAndPassword(auth, email, password);
+        user = res.user;
+      } else {
+        const res = await createUserWithEmailAndPassword(auth, email, password);
+        user = res.user;
+
+        finalPhotoURL = await uploadImage(user.uid);
+        await updateProfile(user, {
+          displayName: username,
+          photoURL: finalPhotoURL,
+        });
       }
-    } catch (err) {
-      console.error("Auth error:", err);
+
+      const userData = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName ?? username,
+        photoURL: user.photoURL ?? finalPhotoURL,
+        username: username || user.displayName || "NoName",
+      };
+
+      localStorage.setItem("userData", JSON.stringify(userData));
+      localStorage.setItem("accessToken", await user.getIdToken());
+
+      await writeUserToDB(userData);
+      setUserOnlineStatus();
+      toast.success(`Xush kelibsiz, ${userData.displayName}`);
+      navigate("/");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(
+        err.code === "auth/email-already-in-use"
+          ? "Bu email allaqachon ro‘yxatdan o‘tgan"
+          : err.message || "Xatolik yuz berdi"
+      );
     }
   };
 
@@ -58,21 +93,29 @@ export default function Login() {
     let prov;
     if (provider === "google") prov = googleProvider;
     if (provider === "apple") prov = appleProvider;
+
     try {
       const result = await signInWithPopup(auth, prov!);
       const user = result.user;
-        const accessToken = await user.getIdToken();
-        const userData:UserDataType = {
-          uid: user.uid,
-          email: user.email,
-          photoURL: user.photoURL,
-          displayName: user.displayName,
-          username:username
-        }
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("userData", JSON.stringify(userData));
-    } catch (err) {
+
+      const userData = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName ?? "Foydalanuvchi",
+        photoURL: user.photoURL ?? DEFAULT_IMAGE,
+        username: user.displayName ?? "Foydalanuvchi",
+      };
+
+      localStorage.setItem("userData", JSON.stringify(userData));
+      localStorage.setItem("accessToken", await user.getIdToken());
+
+      await writeUserToDB(userData);
+      setUserOnlineStatus();
+      toast.success(`Xush kelibsiz, ${userData.displayName}`);
+      navigate("/dashboard");
+    } catch (err: any) {
       console.error("Provider login error:", err);
+      toast.error(err.message || "Kirishda xatolik");
     }
   };
 
@@ -80,21 +123,32 @@ export default function Login() {
     <div className="Login flex items-center justify-center w-full py-12 px-4 min-h-[100vh]">
       <div className="w-[400px] text-white gap-4 h-fit backdrop-blur-xs bg-white/10 p-4 rounded-xl">
         <form className="flex flex-col gap-3" onSubmit={handleEmailAuth}>
-          <h1 className="text-center text-4xl mb-2 font-semibold">{isLogin ? "Log In" : "Register"}</h1>
-          {!isLogin  && <Input
-            aria-label="Username"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />}
+          <h1 className="text-center text-4xl mb-2 font-semibold">
+            {isLogin ? "Log In" : "Register"}
+          </h1>
+
+          {!isLogin && (
+            <>
+              <Input
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+            </>
+          )}
+
           <Input
-            aria-label="Email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <Input
-            aria-label="Password"
+            type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -106,22 +160,20 @@ export default function Login() {
               onClick={() => setIsLogin(!isLogin)}
               className="text-blue-500 cursor-pointer underline"
             >
-              {isLogin ? "Register" : "Login"}
+              {isLogin ? "Ro‘yxatdan o‘tish" : "Kirish"}
             </button>
-            <span>OR</span>
-            <Link className="text-blue-500 underline" to={"/"}>
-              Forgot Password ishlamaydi
-            </Link>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <Button
+              type="button"
               onClick={() => handleProviderLogin("google")}
               className="!bg-black"
             >
               <Github className="me-1" /> Google
             </Button>
             <Button
+              type="button"
               onClick={() => handleProviderLogin("apple")}
               className="!bg-white !text-black"
             >
@@ -130,7 +182,7 @@ export default function Login() {
           </div>
 
           <Button type="submit" className="!w-full">
-            {isLogin ? "Sign in" : "Register"}
+            {isLogin ? "Kirish" : "Ro‘yxatdan o‘tish"}
           </Button>
         </form>
       </div>

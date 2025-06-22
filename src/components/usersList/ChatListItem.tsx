@@ -1,4 +1,4 @@
-import { fetchAllUsers } from "@/services/userService";
+import { subscribeToUsers  } from "@/services/userService";
 import { useContactInfo, type User } from "@/store/zustandStore";
 import React, { useEffect, useState } from "react";
 
@@ -12,20 +12,19 @@ const ChatListItem: React.FC<{ search: string }> = ({ search }) => {
   const currentUserId = currentUser?.uid ?? null;
 
   // 👤 Barcha userlarni olish
-  useEffect(() => {
-    const loadUsers = async () => {
-      const fetchedUsers = await fetchAllUsers();
-      const withoutCurrentUser = fetchedUsers.filter(
-        (u) => u.uid !== currentUserId
-      );
-      setAllUsers(withoutCurrentUser);
-      setUsers(withoutCurrentUser); // default holat
-    };
+ useEffect(() => {
+  if (!currentUserId) return;
 
-    if (currentUserId) {
-      loadUsers();
-    }
-  }, [currentUserId, setUsers]);
+  const unsubscribe = subscribeToUsers((allUsers) => {
+    const withoutCurrentUser = allUsers.filter((u) => u.uid !== currentUserId);
+    setUsers(withoutCurrentUser);
+    setAllUsers(withoutCurrentUser);
+  });
+
+  return () => {
+    unsubscribe(); // 👈 cleanup
+  };
+}, [currentUserId, setUsers]);
 
   // 🔍 Search ishlovchi effekt
   useEffect(() => {
@@ -51,7 +50,7 @@ const ChatListItem: React.FC<{ search: string }> = ({ search }) => {
 
   return (
     <div className="w-full overflow-auto">
-      <div className="pe-3">
+      <div>
         {loading ? (
           <div className="flex items-center justify-center py-4">
             <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
@@ -61,7 +60,7 @@ const ChatListItem: React.FC<{ search: string }> = ({ search }) => {
             <div
               key={item.uid || index}
               onClick={() => setUserChatOpen(item.uid)}
-              className="flex cursor-pointer my-1 rounded-sm py-2 gap-2 items-center hover:bg-slate-100"
+              className="flex cursor-pointer my-1 py-2 gap-2 px-5 items-center dark:hover:bg-slate-700 hover:bg-slate-100"
             >
               <div className="relative rounded-full w-10 h-10">
                 <img

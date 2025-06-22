@@ -1,7 +1,7 @@
 import ChatBox from "@/layouts/ChatBox";
 import ContactInfoBox from "@/layouts/ContactInfoBox";
 import UsersListBox from "@/layouts/UsersListBox";
-import { sendMessage, subscribeToMessages } from "@/services/chatService";
+import {  markMessageAsSeen, sendMessage, subscribeToMessages, type ChatMessage } from "@/services/chatService";
 import { useContactInfo } from "@/store/zustandStore";
 import { useEffect, useState } from "react";
 
@@ -11,7 +11,8 @@ export interface Message {
   senderId: string | null; // string bo'lishi kerak, Firebase UID
   senderName?: string;
   uid?: string;
-  key?:any
+  key?:any,
+  seen?:boolean
 }
 
 const Home = () => {
@@ -27,32 +28,50 @@ const Home = () => {
   const chatId = currentUserId && userChatOpen 
   ? [currentUserId, userChatOpen].sort().join("_") 
   : null;
-  
+    
   const [messages, setMessages] = useState<Message[]>([]);
-if (currentUserId === userChatOpen) return;
+if (currentUserId === userChatOpen) return null;
 
-  // Xabarlarni tinglash (realtime)
- useEffect(() => {
+useEffect(() => {
   if (!chatId) return;
 
-  // Clear old messages when chat changes
   setMessages([]);
 
-  const unsubscribe = subscribeToMessages(chatId, (message: Message) => {
-    setMessages((prev) => {
-      // Optional: prevent duplicate messages by checking timestamp or ID
-      const isDuplicate = prev.some(m => m.createdAt === message.createdAt && m.text === message.text);
-      if (isDuplicate) return prev;
-      return [...prev, message];
-    });
-  });
+  const unsubscribe = subscribeToMessages(
+    chatId,
+    (message: ChatMessage) => {
+      // 🔵 ADD yangi message
+      if (
+  message.senderId !== currentUserId &&
+  userChatOpen === message.senderId &&
+  message.seen === false &&
+  message.key
+) {
+  markMessageAsSeen(chatId, message.key);
+}
 
-  // CLEANUP listener when component unmounts or chatId changes
-  return () => {
-    unsubscribe(); // This calls `off()` internally
-  };
-  
-}, [chatId]); // ✅ chatId o‘zgarganda qayta ishga tushadi
+      setMessages((prev) => {
+        const isDuplicate = prev.some(
+          (m) => m.createdAt === message.createdAt && m.text === message.text
+        );
+        if (isDuplicate) return prev;
+        return [...prev, message];
+      });
+    },
+    // 🔴 REMOVE
+    (removedKey: string) => {
+      setMessages((prev) => prev.filter((msg) => msg.key !== removedKey));
+    },
+    // 🟢 CHANGE — real-time seen update
+    (updatedMsg: ChatMessage) => {
+      setMessages((prev) =>
+        prev.map((m) => (m.key === updatedMsg.key ? updatedMsg : m))
+      );
+    }
+  );
+
+  return () => unsubscribe();
+}, [currentUserId, userChatOpen]);
 
 
  const handleSend = (text: string) => {
@@ -69,7 +88,7 @@ if (currentUserId === userChatOpen) return;
 
 
   return (
-    <div className="chatHome flex w-full bg-slate-50 h-full gap-5 min-[600px]:p-5">
+    <div className="chatHome flex w-full dark:bg-slate-800 bg-slate-50 h-full gap-5 min-[600px]:p-5">
       <UsersListBox />
       <ChatBox
         currentUser={receiverUser}

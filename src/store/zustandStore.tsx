@@ -6,9 +6,11 @@ export interface User {
   username: string;
   email?: string;
   userAvatar?: string;
+  displayName?: string;
+  photoURL?: string;
   message?: string;
   dateTyme?: string;
-  isActive?: boolean;
+  isActive: boolean;
   isSeeCount?: number;
 }
 

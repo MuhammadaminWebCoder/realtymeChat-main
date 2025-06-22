@@ -17,12 +17,12 @@ const ChatHeader: React.FC<{
     setBackToUserList(true);
   };
   return (
-    <div className="bg-white h-15 flex justify-between items-center px-5 py-1">
+    <div className="bg-white h-15 dark:bg-slate-600 flex justify-between items-center px-5 py-1">
       <div className="flex gap-3 items-center">
           <ArrowLeft className="min-[800px]:hidden" onClick={BackToUserList}/>
           <img onClick={() => setContactInfo(true)} className="w-10 h-10 rounded-full" src={avatar} alt="user avatar" />
           <div>
-            <p className="font-semibold ">{username}</p>
+            <p className="font-semibold max-[400px]:w-30 line-clamp-1">{username}</p>
             <p className="text-slate-400 text-sm">{isActive ? 'online': 'offline'}</p>
           </div>
       </div>

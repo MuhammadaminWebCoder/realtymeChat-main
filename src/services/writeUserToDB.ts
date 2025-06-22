@@ -1,5 +1,5 @@
-import { ref, set } from "firebase/database";
-import { db } from "@/firebase"; // bu sizda allaqachon bor
+import { ref, update } from "firebase/database";
+import { db } from "@/firebase";
 
 interface UserDataType {
   uid: string;
@@ -11,14 +11,16 @@ interface UserDataType {
 
 export const writeUserToDB = async (user: UserDataType) => {
   try {
-    await set(ref(db, `users/${user.uid}`), {
+    const userRef = ref(db, `users/${user.uid}`);
+    await update(userRef, {
       email: user.email,
       photoURL: user.photoURL,
       displayName: user.displayName,
-      username: user.username,
+      username: user.username
+      // ❌ online ni yo‘q qilmang
     });
-    console.log("✅ User written to database");
+    console.log("✅ User updated in database");
   } catch (error) {
-    console.error("❌ Failed to write user to database:", error);
+    console.error("❌ Failed to update user:", error);
   }
 };
