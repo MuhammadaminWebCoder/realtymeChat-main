@@ -13,8 +13,8 @@ const UsersListBox = () => {
       <SearchInput search={search} setSearch={setSearch}/>
       <p className="font-semibold px-5 text-md mb-2">ALL CHATS</p>
       <ChatListItem search={search}/>
-      <div className="absolute right-10 bottom-10">
-        <Button className="cursor-pointer !bg-blue-500 sticky right-10 bottom-10 "><Plus/></Button>
+      <div className="absolute right-5 bottom-5">
+        <Button className="cursor-pointer !bg-blue-500"><Plus/></Button>
       </div>
     </div>
   )

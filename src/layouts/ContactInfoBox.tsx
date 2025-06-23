@@ -51,12 +51,12 @@ const ContactInfoBox:React.FC<{currentUser:any}> = ({currentUser}) => {
   }
 
   return (
-    <div style={{borderWidth:'0px'}} className={`rounded-md ${contactInfo ? '!block' : 'hidden'} dark:!bg-slate-600 max-[500px]:w-full h-full flex flex-col max-[1200px]:absolute max-[1200px]:-translate-1/2 left-[50%] top-[50%] max-[1200px]:hidden border max-[1200px]:w-[400px] w-[320px] border-slate-100`}>
+    <div style={{borderWidth:'0px'}} className={`rounded-md ${contactInfo ? '!block' : 'hidden'} max-[800px]:absolute  left-0 top-0 max-[800px]:w-full dark:!bg-slate-600 flex-1 h-full flex flex-col  border max-[1200px]:w-[400px] border-slate-100`}>
       <div className="w-full overflow-auto h-full">
-      <ProfileHeader ProfileInfoClose={profileInfoClose} />
-          <MediaLinks mediaData={mediaData} />
-          <MuteNotifications messageIsEnable={'off'} />
-          <ActionButtons username={mediaData.username} BlockUser={blockUser} reportUser={reportUser} deleteChat={deleteChat}  />
+        <ProfileHeader ProfileInfoClose={profileInfoClose} />
+        <MediaLinks mediaData={mediaData} />
+        <MuteNotifications messageIsEnable={'off'} />
+        <ActionButtons username={mediaData.username} BlockUser={blockUser} reportUser={reportUser} deleteChat={deleteChat}  />
       </div>
     </div>
   )

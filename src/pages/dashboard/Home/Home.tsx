@@ -39,16 +39,10 @@ useEffect(() => {
 
   const unsubscribe = subscribeToMessages(
     chatId,
-    (message: ChatMessage) => {
-      // 🔵 ADD yangi message
-      if (
-  message.senderId !== currentUserId &&
-  userChatOpen === message.senderId &&
-  message.seen === false &&
-  message.key
-) {
-  markMessageAsSeen(chatId, message.key);
-}
+  (message: ChatMessage) => {
+    if ( message.senderId !== currentUserId && userChatOpen === message.senderId && message.seen === false && message.key) {
+    markMessageAsSeen(chatId, message.key);
+    }
 
       setMessages((prev) => {
         const isDuplicate = prev.some(
@@ -86,20 +80,14 @@ useEffect(() => {
   sendMessage(chatId, message);
 };
 
-
+  const { contactInfo } = useContactInfo();
   return (
     <div className="chatHome flex w-full dark:bg-slate-800 bg-slate-50 h-full gap-5 min-[600px]:p-5">
       <UsersListBox />
-      <ChatBox
-        currentUser={receiverUser}
-        currentUserId={currentUserId}
-        messages={messages}
-        onSend={handleSend}
-        userChatOpen={userChatOpen}
-        setUserChatOpen={setUserChatOpen}
-        setMessages={setMessages}
-      />
-      <ContactInfoBox currentUser={receiverUser} />
+      {
+        contactInfo
+        ? <ContactInfoBox currentUser={receiverUser} />
+        : <ChatBox currentUser={receiverUser} currentUserId={currentUserId} messages={messages} onSend={handleSend} userChatOpen={userChatOpen} setUserChatOpen={setUserChatOpen} setMessages={setMessages}/>}
     </div>
   );
 };
