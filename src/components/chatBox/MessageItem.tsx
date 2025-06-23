@@ -5,6 +5,8 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
+import { PiChecksBold } from "react-icons/pi";
+import { HiCheck } from "react-icons/hi";
 import { CheckCircle, Pen, Trash } from "lucide-react"
 import type { Message } from "@/pages/dashboard/Home/Home"
 import { deleteMessage } from "@/services/chatService"
@@ -72,7 +74,7 @@ const MessageItem: React.FC<Props> = ({
   return (
     <div
       ref={scrollRef}
-      className="h-[calc(100%-60px)] p-5 px-0 min-h-0 overflow-y-auto"
+      className="h-[calc(100%-60px)] pt-5 px-0 min-h-0 overflow-y-auto"
       onClick={() => setSelectedId(null)}
     >
       <div className="p-4 !py-0 space-y-3 flex flex-col">
@@ -102,14 +104,17 @@ const MessageItem: React.FC<Props> = ({
                 >
                   {message.text}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="flex items-center">
+                <p className="text-xs me-2 text-muted-foreground mt-1">
                   {formatTime(message.createdAt)} PM
                 </p>
-                {isOwnMessage && (
+                  {isOwnMessage && (
     <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-      {message.seen ? "✔✔" : "✔"}
+      {message.seen ? <PiChecksBold size={23}/> : <HiCheck size={23}/>}
     </div>
   )}
+                </div>
+                
               </ContextMenuTrigger>
 
               <ContextMenuContent className="w-40">

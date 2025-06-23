@@ -12,7 +12,7 @@ const ChatListItem: React.FC<{ search: string }> = ({ search }) => {
   const currentUserId = currentUser?.uid ?? null;
 
   // 👤 Barcha userlarni olish
- useEffect(() => {
+useEffect(() => {
   if (!currentUserId) return;
 
   const unsubscribe = subscribeToUsers((allUsers) => {

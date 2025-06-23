@@ -17,13 +17,13 @@ const MediaLinks:React.FC<{mediaData:MediaLinksType}> = ({mediaData}) => {
       </div>
       <div className="About">
           <p className="font-semibold text-sm">About</p>
-          <p className="text-slate-400 mb-1 w-[80%] text-sm line-clamp-1">{mediaData?.aboutBio}</p>
+          <p className="text-slate-400 mb-1 w-[80%] text-sm line-clamp-1">{mediaData?.aboutBio || 'About not found'}</p>
 
           <p className="font-semibold text-sm">Media, Links and doc</p>
-          <div className="gap-2 grid grid-cols-4 mt-2">
-            {mediaData?.mediaPhoto?.splice(0,4).map((item:string,ind:number) => (
-              <img className="rounded-md w-full" key={ind} src={item} alt="media more" />
-            ))}
+          <div className="gap-2 flex  mt-2">
+            {mediaData?.mediaPhoto ? mediaData?.mediaPhoto?.splice(0,4).map((item:string,ind:number) => (
+              <img className="rounded-md w-30 h-30" key={ind} src={item} alt="media more" />
+            )) : 'media not found'}
           </div>
       </div>
     </div>
