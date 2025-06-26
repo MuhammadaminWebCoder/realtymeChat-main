@@ -17,11 +17,14 @@ import {
 export const sendMessage = (chatId: string, message: Message) => {
   const messagesRef = ref(db, `chats/${chatId}/messages`);
   const newMessageRef = push(messagesRef);
+
   set(newMessageRef, {
-    ...message,
-    seen: false, // yangi xabar — ko‘rilmagan holatda
-  });
+  ...message,
+  timestamp: message.timestamp, // 👈 createdAt ni timestamp deb saqlayapti
+  seen: false,
+});
 };
+
 
 // ✅ ChatMessage turi (Message + Firebase key)
 export interface ChatMessage extends Message {
