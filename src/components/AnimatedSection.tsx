@@ -9,6 +9,7 @@ type Props = {
   delay?: number;
   directions?: Direction[];
   extraClass?:ReactNode,
+  extraStyle?:React.CSSProperties,
   onClick?: () => void
 };
 
@@ -25,7 +26,7 @@ const getInitialPosition = (directions: Direction[]) => {
   return { x, y };
 };
 
-export const AnimatedSection = ({ children,extraClass,onClick, delay = 0, directions = ["left"] }: Props) => {
+export const AnimatedSection = ({ children,extraStyle,extraClass,onClick, delay = 0, directions = ["left"] }: Props) => {
   const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.2,
@@ -37,6 +38,7 @@ export const AnimatedSection = ({ children,extraClass,onClick, delay = 0, direct
     <motion.div
     ref={ref}
     className={`${extraClass}`}
+    style={{ ...extraStyle }}
     onClick={onClick}
       initial={initial}
       animate={inView ? { opacity: 1, x: 0, y: 0 } : {}}

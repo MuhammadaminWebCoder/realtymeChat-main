@@ -1,3 +1,4 @@
+import { AnimatedSection } from "@/components/AnimatedSection"
 import ActionButtons from "@/components/contactInfoBox/ActionButtons"
 import MediaLinks from "@/components/contactInfoBox/MediaLinks"
 import MuteNotifications from "@/components/contactInfoBox/MuteNotifications"
@@ -51,14 +52,14 @@ const ContactInfoBox:React.FC<{currentUser:any}> = ({currentUser}) => {
   }
 
   return (
-    <div style={{borderWidth:'0px'}} className={`rounded-md ${contactInfo ? '!block' : 'hidden'} max-[800px]:absolute  left-0 top-0 max-[800px]:w-full dark:!bg-slate-600 flex-1 h-full flex flex-col  border max-[1200px]:w-[400px] border-slate-100`}>
+    <AnimatedSection directions={['bottom']} extraStyle={{borderWidth:'0px'}} extraClass={`rounded-md ${contactInfo ? '!block' : 'hidden'} max-[800px]:absolute  left-0 top-0 max-[800px]:w-full dark:!bg-slate-600 flex-1 h-full flex flex-col  border max-[1200px]:w-[400px] border-slate-100`}>
       <div className="w-full overflow-auto h-full">
         <ProfileHeader ProfileInfoClose={profileInfoClose} />
         <MediaLinks mediaData={mediaData} />
         <MuteNotifications messageIsEnable={'off'} />
         <ActionButtons username={mediaData.username} BlockUser={blockUser} reportUser={reportUser} deleteChat={deleteChat}  />
       </div>
-    </div>
+    </AnimatedSection>
   )
 }
 

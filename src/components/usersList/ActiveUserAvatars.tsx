@@ -1,89 +1,173 @@
 import { EllipsisVertical } from "lucide-react";
-import { useContactInfo } from "@/store/zustandStore";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { useContactInfo, type User } from "@/store/zustandStore";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { toast } from "react-toastify";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { storage } from "@/firebase"; // Firebase storage
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 const ActiveUserAvatars = () => {
-  const { users, setUserChatOpen } = useContactInfo();
+  const { users, currentUser, setCurrentUser, setUserChatOpen } = useContactInfo();
+  const [chooceImage, setChooseImage] = useState<string>(""); // preview uchun
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // upload uchun
 
-  // 🔍 faqat online bo‘lgan userlarni olish (va o'zingizni olib tashlash)
-  const currentUser = JSON.parse(localStorage.getItem("userData") || "{}");
-  const activeUsers = users.filter(
-    (u) => u.isActive && u.uid !== currentUser.uid
-  );
-  const HandleModalEdite = (e:React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    toast.success(`Profile edite be confirm to user ${currentUser.displayName}`);
+  // Faqat bir marta userni olish
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("userData") as string);
+    setCurrentUser(user);
+    setChooseImage(
+      user?.photoURL ||
+        user?.userAvatar ||
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-439DWYBIlMKtzkqbQqBpg9YNVgT13pkhCoPXmad5lg3Dk0mdmBLPlPGLUYQhF73sNH4&usqp=CAU"
+    );
+  }, []);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setChooseImage(imageUrl);
+      setSelectedFile(file);
+    }
+  };
+
+ const HandleModalEdite = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  console.log("Form submitted");
+
+  try {
+    if (selectedFile && currentUser) {
+      console.log("Uploading avatar...");
+      const avatarRef = ref(storage, `avatars/${currentUser.uid}`);
+      await uploadBytes(avatarRef, selectedFile);
+      const photoURL = await getDownloadURL(avatarRef);
+
+      console.log("Uploaded photoURL:", photoURL);
+
+      // 🔄 Istasangiz bu yerda Realtime DB update yoziladi
+
+      toast.success("Avatar uploaded successfully!");
+    } else {
+      console.log("File not selected or no current user");
+      toast.info("Avatar o'zgartirilmagan.");
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error("Avatarni yuklashda xatolik yuz berdi.");
   }
-  const [chooceImage, setChooseImage] = useState<string>("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-439DWYBIlMKtzkqbQqBpg9YNVgT13pkhCoPXmad5lg3Dk0mdmBLPlPGLUYQhF73sNH4&usqp=CAU")
-  
+};
+
+
+  const handleLogout = () => {
+    toast.success("Token removed. Redirecting...");
+    setTimeout(() => {
+      localStorage.removeItem("userData");
+      localStorage.removeItem("accessToken");
+      location.reload();
+    }, 700);
+  };
+
+  const activeUsers = users.filter((u) => u.isActive && u.uid !== currentUser?.uid);
+
   return (
     <div className="w-full px-5">
       <div className="flex justify-between items-center mb-2">
         <p className="font-semibold text-lg">Active Users</p>
         <Dialog>
-          <form onSubmit={HandleModalEdite}>
             <DialogTrigger asChild>
-        <EllipsisVertical className="text-green-500 cursor-pointer" />
-        </DialogTrigger>
+              <EllipsisVertical className="text-green-500 cursor-pointer" />
+            </DialogTrigger>
 
-            <DialogContent className="sm:max-w-[425px] dark:bg-slate-600  ">
-          <DialogHeader>
-            <DialogTitle className="text-center">Edit profile & Log out</DialogTitle>
-            <DialogDescription className="text-center">
-              Profile Edite be confirm
-            </DialogDescription>
-          </DialogHeader>
-              <div className="rounded-full mx-auto w-25 h-25 overflow-hidden">
-                <input accept="image/*" type="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const imageUrl = URL.createObjectURL(file);setChooseImage(imageUrl);
-                    }}}></input>
-                    <label className="cursor-pointer" htmlFor="file-upload">
-                      <img src={chooceImage} className="w-full h-full object-cover rounded-full" alt="avatar" />
-                    </label>
+            <DialogContent className="sm:max-w-[425px] dark:bg-slate-600">
+              <form onSubmit={HandleModalEdite}>
+              <DialogHeader>
+                <DialogTitle className="text-center">Edit profile & Log out</DialogTitle>
+                <DialogDescription className="text-center">
+                  Profile Edite be confirm
+                </DialogDescription>
+              </DialogHeader>
+
+              {/* Avatar */}
+              <div className="rounded-full mx-auto w-24 h-24 overflow-hidden">
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+                <label htmlFor="avatar-upload" className="cursor-pointer">
+                  <img
+                    src={chooceImage}
+                    alt="avatar"
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                </label>
               </div>
-          <div className="grid gap-4">
-            <div className="grid gap-3">
-              <Input id="name-1" name="name" placeholder="username" defaultValue={"Pedro Duarte"} />
-            </div>
-            <div className="grid">
-              <Textarea id="username-1" className="!h-[140px]" maxLength={160} name="username" placeholder="bio" defaultValue={'Frontend developer'} />
-              <p className="text-slate-600 text-sm text-end">max bio lenght 160</p>
-            </div>
-          </div>
-         <DialogFooter className="flex w-full !justify-between">
-  {/* Chap tomonda: Log out */}
-  <div>
-    <Button type="button" className="bg-red-500" onClick={() => {
-          localStorage.removeItem("userData");
-          location.reload(); // yoki navigate("/login")
-        }}>Log out Tokken</Button>
-  </div>
 
-  {/* O‘ng tomonda: Cancel va Save changes */}
-  <div className="flex gap-2">
-    <DialogClose asChild>
-      <Button variant="outline">Cancel</Button>
-    </DialogClose>
-    <Button className="dark:bg-green-500" type="submit">Save changes</Button>
-  </div>
-</DialogFooter>
-        </DialogContent>
-      </form>
-          
+              {/* Form fields */}
+              <div className="grid gap-4 mt-4">
+                <div className="grid gap-3">
+                  <Input
+                    id="name-1"
+                    name="name"
+                    placeholder="username"
+                    defaultValue={currentUser?.displayName || currentUser?.username}
+                  />
+                </div>
+                <div className="grid">
+                  <Textarea
+                    id="bio"
+                    className="!h-[140px]"
+                    maxLength={160}
+                    name="bio"
+                    placeholder="bio"
+                    defaultValue={currentUser?.aboutBio || ""}
+                  />
+                  <p className="text-slate-600 text-sm text-end">max bio length 160</p>
+                </div>
+              </div>
 
+              {/* Footer */}
+              <DialogFooter className="flex flex-row-reverse max-[455px]:flex-col-reverse w-full !justify-between">
+                <div className="max-sm:order-2">
+                  <Button
+                    type="button"
+                    className="!bg-red-500 cursor-pointer w-full dark:text-white"
+                    onClick={handleLogout}
+                  >
+                    Log out
+                  </Button>
+                </div>
+                <div className="flex max-[455px]:flex-col max-sm:order-1 gap-2">
+                  <DialogClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </DialogClose>
+                  <Button className="dark:bg-green-500 dark:text-white" type="submit">
+                    Save changes
+                  </Button>
+                </div>
+              </DialogFooter>
+            </form>
+            </DialogContent>
         </Dialog>
       </div>
 
       <div className="flex gap-4 overflow-x-auto max-w-full py-2">
         {activeUsers.length > 0 ? (
-          activeUsers.map((user, index) => (
+          activeUsers.map((user: User, index: number) => (
             <div
               key={user.uid || index}
               className="relative rounded-full w-10 h-10 cursor-pointer shrink-0"

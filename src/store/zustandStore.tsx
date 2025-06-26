@@ -12,6 +12,7 @@ export interface User {
   dateTyme?: string;
   isActive: boolean;
   isSeeCount?: number;
+  aboutBio?: string;
 }
 
 type ContactInfoStore = {
@@ -22,6 +23,8 @@ type ContactInfoStore = {
   setMessageList:(value:boolean) => void;
   setContactInfo: (value: boolean) => void;
   users: User[];
+  currentUser: User | null;
+  setCurrentUser: (user: User | null) => void;
   setUsers: (users: User[]) => void;
   receiverInfo: { uid: string; name: string } | null;
   setReceiverInfo: (info: { uid: string; name: string } | null) => void;
@@ -33,6 +36,8 @@ export const useContactInfo = create<ContactInfoStore>((set) => ({
   userChatOpen:null,
   users:[],
   receiverInfo:null,
+  currentUser: null,
+  setCurrentUser: (value) => set({ currentUser: value }),
   setReceiverInfo: (value) => set({receiverInfo:value}),
   setUsers:(value) => set({users:value}),
   setUserChatOpen:(value) => set({userChatOpen:value}),

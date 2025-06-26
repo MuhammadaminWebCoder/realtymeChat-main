@@ -29,7 +29,7 @@ const MessageInput: React.FC<{onSend: (text: string) => void}> = ({ onSend }) =>
           </label>
         </div>
       </div>
-      <Button type={message.length > 0 ? 'submit' : 'button'} className="rounded-full cursor-pointer !w-10 !bg-slate-400 !h-10">
+      <Button type={message.length > 0 ? 'submit' : 'button'} className="rounded-full cursor-pointer !w-10 !bg-slate-400 dark:text-white !h-10">
        {message.length > 0 ? <FaTelegramPlane className="!w-7 !h-7" /> : <IoMicOutline className="!w-7 !h-7" />  }
       </Button>
     </form>

@@ -1,0 +1,14 @@
+import { db } from "@/firebase";
+import { ref, query, orderByChild, limitToLast, get } from "firebase/database";
+
+export const fetchLastMessage = async (chatId: string) => {
+  const messagesRef = ref(db, `chats/${chatId}/messages`);
+  const lastMsgQuery = query(messagesRef, orderByChild("timestamp"), limitToLast(1));
+  const snapshot = await get(lastMsgQuery);
+
+  if (!snapshot.exists()) return null;
+
+  const messages = snapshot.val();
+  const lastMessage = Object.values(messages)[0];
+  return lastMessage;
+};

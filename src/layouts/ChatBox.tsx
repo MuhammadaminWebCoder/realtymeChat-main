@@ -1,3 +1,4 @@
+import { AnimatedSection } from "@/components/AnimatedSection";
 import ChatHeader from "@/components/chatBox/ChatHeader"
 import MessageInput from "@/components/chatBox/MessageInput"
 import MessageItem from "@/components/chatBox/MessageItem"
@@ -44,7 +45,7 @@ useEffect(() => {
 }, [userChatOpen]);
 
   return (
-    <div className={`${currentUser ? 'max-[800px]:absolute  left-0 top-0 max-[800px]:w-full ' : 'max-[800px]:hidden '}
+    <AnimatedSection directions={['bottom']} extraClass={`${currentUser ? 'max-[800px]:absolute left-0 top-0 max-[800px]:w-full ' : 'max-[800px]:hidden '}
     ${backToUserList && 'max-[800px]:hidden '} overflow-hidden dark:!bg-slate-700 rounded-md !bg-slate-50 h-full flex flex-col flex-1 border-slate-100`}>
       {/* Chat header qismi */}
       <ChatHeader 
@@ -64,7 +65,7 @@ useEffect(() => {
           />
           <MessageInput onSend={onSend} />
       </div>
-    </div>
+    </AnimatedSection>
   )
 }
 
