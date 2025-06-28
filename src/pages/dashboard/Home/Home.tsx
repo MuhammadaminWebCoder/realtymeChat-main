@@ -1,93 +1,121 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import ChatBox from "@/layouts/ChatBox";
 import ContactInfoBox from "@/layouts/ContactInfoBox";
 import UsersListBox from "@/layouts/UsersListBox";
-import {  markMessageAsSeen, sendMessage, subscribeToMessages, type ChatMessage } from "@/services/chatService";
+import {
+  subscribeToMessages,
+  markMessageAsSeen,
+  sendMessage,
+  type ChatMessage,
+} from "@/services/chatService";
 import { useContactInfo } from "@/store/zustandStore";
-import { useEffect, useState } from "react";
 
 export interface Message {
   text: string;
-  createdAt?:number,
-  senderId: string | null; // string bo'lishi kerak, Firebase UID
+  createdAt?: number;
+  senderId: string | null;
   senderName?: string;
   uid?: string;
-  key?:any,
-  seen?:boolean
+  key?: any;
+  seen?: boolean;
+  timestamp?: number;
 }
 
 const Home = () => {
+  const { id: otherUserId } = useParams(); // 👈 URL dan /chat/:id
+  const {
+    userChatOpen,
+    setUserChatOpen,
+    users,
+    contactInfo,
+  } = useContactInfo();
 
-  const { userChatOpen,users,setUserChatOpen  } = useContactInfo(); // bu suhbatdoshning UID
-  const receiverUser = users.find(user => user.uid === userChatOpen);
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  const currentUserId = userData?.uid || null;
 
-  // O'zingizning foydalanuvchi ma'lumotlaringizni localStorage dan oling
-  const userDataString = localStorage.getItem("userData");
-  const currentUser = userDataString ? JSON.parse(userDataString) : null;
-  const currentUserId = currentUser?.uid ?? null;
-  
-  const chatId = currentUserId && userChatOpen 
-  ? [currentUserId, userChatOpen].sort().join("_") 
-  : null;
-    
   const [messages, setMessages] = useState<Message[]>([]);
-if (currentUserId === userChatOpen) return null;
 
-useEffect(() => {
-  if (!chatId) return;
-
-  setMessages([]);
-
-  const unsubscribe = subscribeToMessages(
-    chatId,
-  (message: ChatMessage) => {
-    if ( message.senderId !== currentUserId && userChatOpen === message.senderId && message.seen === false && message.key) {
-    markMessageAsSeen(chatId, message.key);
+  // ✅ Faqat bir marta userChatOpen ni path dan o‘rnatish
+  useEffect(() => {
+    if (otherUserId) {
+      setUserChatOpen(otherUserId);
     }
+  }, [otherUserId]);
 
-      setMessages((prev) => {
-        const isDuplicate = prev.some(
-          (m) => m.createdAt === message.createdAt && m.text === message.text
+  const receiverUser = users.find((u) => u.uid === userChatOpen);
+  const chatId =
+    currentUserId && userChatOpen
+      ? [currentUserId, userChatOpen].sort().join("_")
+      : null;
+
+  // ✅ Xabarlarni olish
+  useEffect(() => {
+    if (!chatId || !currentUserId) return;
+
+    setMessages([]); // clear old messages
+
+    const unsubscribe = subscribeToMessages(
+      chatId,
+      (message: ChatMessage) => {
+        // 🔘 Duplicate message filter
+        setMessages((prev) => {
+          const exists = prev.some((m) => m.key === message.key);
+          if (exists) return prev;
+          return [...prev, message];
+        });
+
+        // ✅ Agar boshqa user yuborgan bo‘lsa, uni ko‘rildi deb belgilaymiz
+        if (
+          message.senderId !== currentUserId &&
+          message.seen === false &&
+          message.key
+        ) {
+          markMessageAsSeen(chatId, message.key);
+        }
+      },
+      (removedKey: string) => {
+        setMessages((prev) => prev.filter((msg) => msg.key !== removedKey));
+      },
+      (updatedMsg: ChatMessage) => {
+        setMessages((prev) =>
+          prev.map((m) => (m.key === updatedMsg.key ? updatedMsg : m))
         );
-        if (isDuplicate) return prev;
-        return [...prev, message];
-      });
-    },
-    // 🔴 REMOVE
-    (removedKey: string) => {
-      setMessages((prev) => prev.filter((msg) => msg.key !== removedKey));
-    },
-    // 🟢 CHANGE — real-time seen update
-    (updatedMsg: ChatMessage) => {
-      setMessages((prev) =>
-        prev.map((m) => (m.key === updatedMsg.key ? updatedMsg : m))
-      );
-    }
-  );
+      }
+    );
 
-  return () => unsubscribe();
-}, [currentUserId, userChatOpen]);
+    return () => unsubscribe();
+  }, [chatId, currentUserId]);
 
+  // ✅ Xabar yuborish
+  const handleSend = (text: string) => {
+    if (!text.trim() || !chatId || !currentUserId) return;
 
- const handleSend = (text: string) => {
-  if (!text.trim() || !currentUserId || !chatId) return;
+    const msg: Message = {
+      text,
+      senderId: currentUserId,
+      createdAt: Date.now(),
+    };
 
-  const message: Message = {
-    text,
-    senderId: currentUserId,
-    createdAt: Date.now(),
+    sendMessage(chatId, msg);
   };
 
-  sendMessage(chatId, message);
-};
-
-  const { contactInfo } = useContactInfo();
   return (
     <div className="chatHome flex w-full dark:bg-slate-800 bg-slate-50 h-full gap-5 min-[600px]:p-5">
       <UsersListBox />
-      {
-        contactInfo
-        ? <ContactInfoBox currentUser={receiverUser} />
-        : <ChatBox currentUser={receiverUser} currentUserId={currentUserId} messages={messages} onSend={handleSend} userChatOpen={userChatOpen} setUserChatOpen={setUserChatOpen} setMessages={setMessages}/>}
+      {contactInfo ? (
+        <ContactInfoBox currentUser={receiverUser} />
+      ) : (
+        <ChatBox
+          currentUser={receiverUser}
+          currentUserId={currentUserId}
+          messages={messages}
+          onSend={handleSend}
+          userChatOpen={userChatOpen}
+          setUserChatOpen={setUserChatOpen}
+          setMessages={setMessages}
+        />
+      )}
     </div>
   );
 };

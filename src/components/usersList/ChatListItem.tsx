@@ -1,52 +1,59 @@
-import { subscribeToUsers  } from "@/services/userService";
+import { subscribeToUsers } from "@/services/userService";
+import { subscribeToLastMessageAndCount } from "@/services/chatService";
 import { useContactInfo, type User } from "@/store/zustandStore";
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const ChatListItem: React.FC<{ search: string }> = ({ search }) => {
-  const { setUserChatOpen, setUsers, users } = useContactInfo();
+  const { setUserChatOpen, setUsers } = useContactInfo();
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const userDataString = localStorage.getItem("userData");
-  const currentUser = userDataString ? JSON.parse(userDataString) : null;
+  const currentUser = JSON.parse(localStorage.getItem("userData") || "{}");
   const currentUserId = currentUser?.uid ?? null;
 
-  // 👤 Barcha userlarni olish
-useEffect(() => {
-  if (!currentUserId) return;
+  useEffect(() => {
+    if (!currentUserId) return;
 
-  const unsubscribe = subscribeToUsers((allUsers) => {
-    const withoutCurrentUser = allUsers.filter((u) => u.uid !== currentUserId);
-    setUsers(withoutCurrentUser);
-    setAllUsers(withoutCurrentUser);
-  });
+    const unsubscribeUsers = subscribeToUsers((rawUsers) => {
+      const filtered = rawUsers.filter((u) => u.uid !== currentUserId);
 
-  return () => {
-    unsubscribe(); // 👈 cleanup
-  };
-}, [currentUserId, setUsers]);
+      // 👇 Har bir user uchun real-time message listener
+      const updatedUsers = [...filtered];
 
-  // 🔍 Search ishlovchi effekt
+      updatedUsers.forEach((user, index) => {
+        const chatId = [currentUserId, user.uid].sort().join("_");
+
+        subscribeToLastMessageAndCount(chatId, currentUserId, (data) => {
+          updatedUsers[index] = {
+            ...user,
+            ...data,
+          };
+          setUsers([...updatedUsers]);
+          setAllUsers([...updatedUsers]);
+        });
+      });
+    });
+
+    return () => {
+      unsubscribeUsers(); // 🔁 cleanup on unmount
+    };
+  }, [currentUserId]);
+
+  // 🔍 Search
   useEffect(() => {
     setLoading(true);
-
     const delay = setTimeout(() => {
-      if (search.trim() === "") {
-        // 🔁 search bo‘sh bo‘lsa, faqat currentUserdan tashqari hammasi
-        const filtered = allUsers.filter((u) => u.uid !== currentUserId);
-        setUsers(filtered);
-      } else {
-        const filtered = allUsers.filter((u) =>
-          u.username?.toLowerCase().includes(search.toLowerCase())
-        );
-        setUsers(filtered);
-      }
-
+      const filtered =
+        search.trim() === ""
+          ? allUsers
+          : allUsers.filter((u) =>
+              u.username?.toLowerCase().includes(search.toLowerCase())
+            );
+      setUsers(filtered);
       setLoading(false);
     }, 300);
-
     return () => clearTimeout(delay);
-  }, [search, allUsers, currentUserId, setUsers]);
+  }, [search, allUsers, setUsers]);
 
   return (
     <div className="w-full overflow-auto">
@@ -55,9 +62,10 @@ useEffect(() => {
           <div className="flex items-center justify-center py-4">
             <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
           </div>
-        ) : users.length > 0 ? (
-          users.map((item: User, index: number) => (
-            <div
+        ) : allUsers.length > 0 ? (
+          allUsers.map((item, index) => (
+            <Link
+              to={`/chat/${item.uid}`}
               key={item.uid || index}
               onClick={() => setUserChatOpen(item.uid)}
               className="flex cursor-pointer my-1 py-2 gap-2 px-5 items-center dark:hover:bg-slate-700 hover:bg-slate-100"
@@ -75,29 +83,31 @@ useEffect(() => {
                   <span className="border w-3 h-3 rounded-full bg-green-500 absolute right-0 bottom-0"></span>
                 )}
               </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold">{item.username || "Username"}</p>
-                  <div className="flex items-center">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold truncate">
+                    {item.username || "Username"}
+                  </p>
+                  <div className="flex items-center gap-1">
                     {item.isSeeCount && (
-                      <p className="w-fit text-[12px] text-white me-2 h-fit px-2 rounded-full bg-green-500">
+                      <p className="text-[12px] text-white px-2 rounded-full bg-green-500">
                         {item.isSeeCount}
                       </p>
                     )}
-                    <p className="text-slate-400 text-sm">{item.dateTyme || ""}</p>
+                    <p className="text-slate-400 text-sm">{item.dateTyme}</p>
                   </div>
                 </div>
                 <p
-                  className={`line-clamp-1 text-sm ${
+                  className={`truncate text-sm ${
                     item.isSeeCount
-                      ? "text-black font-semibold"
+                      ? "text-black font-semibold dark:text-white"
                       : "text-slate-400"
                   }`}
                 >
-                  {item.message || "Say hi!"}
+                  {item.message || "no last message"}
                 </p>
               </div>
-            </div>
+            </Link>
           ))
         ) : (
           <p className="text-gray-400 text-sm italic px-2 py-3">

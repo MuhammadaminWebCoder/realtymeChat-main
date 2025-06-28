@@ -10,7 +10,6 @@ import {
   uploadBytes,
   getDownloadURL,
 } from "firebase/storage";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -42,7 +41,6 @@ export default function Login() {
   const [file, setFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ email?: string; password?: string; username?: string }>({});
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const validate = () => {
     const newErrors: typeof errors = {};
