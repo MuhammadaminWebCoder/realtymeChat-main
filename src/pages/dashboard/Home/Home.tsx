@@ -37,11 +37,11 @@ const Home = () => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   // ✅ Faqat bir marta userChatOpen ni path dan o‘rnatish
-  useEffect(() => {
-    if (otherUserId) {
+ useEffect(() => {
+    if (!userChatOpen && otherUserId) {
       setUserChatOpen(otherUserId);
     }
-  }, [otherUserId]);
+  }, [otherUserId, userChatOpen, setUserChatOpen]);
 
   const receiverUser = users.find((u) => u.uid === userChatOpen);
   const chatId =

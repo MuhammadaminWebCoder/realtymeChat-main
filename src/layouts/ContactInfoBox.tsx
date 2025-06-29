@@ -37,18 +37,11 @@ const ContactInfoBox:React.FC<{currentUser:any}> = ({currentUser}) => {
     // blocked user id kelsa shu id ga block fn berib qoyiladi blockuser(id)
   }
   const mediaData = {
-    avatarImg:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-439DWYBIlMKtzkqbQqBpg9YNVgT13pkhCoPXmad5lg3Dk0mdmBLPlPGLUYQhF73sNH4&usqp=CAU',
+    avatarImg:currentUser?.photoURL || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-439DWYBIlMKtzkqbQqBpg9YNVgT13pkhCoPXmad5lg3Dk0mdmBLPlPGLUYQhF73sNH4&usqp=CAU',
     username:currentUser?.username,
     isactive:isUserOnline,
-    aboutBio:'',
-    mediaPhoto:[
-      'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg',
-      'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg',
-      'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg',
-      'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg',
-      'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg',
-      'https://themost.com.tr/wp-content/uploads/2023/04/tm-men1_0000_Evansite95-2.jpg',
-    ]
+    aboutBio:currentUser?.aboutBio,
+    mediaPhoto:currentUser?.mediaPhoto
   }
 
   return (

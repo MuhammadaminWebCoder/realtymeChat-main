@@ -12,32 +12,42 @@ const ChatListItem: React.FC<{ search: string }> = ({ search }) => {
   const currentUserId = currentUser?.uid ?? null;
 
   useEffect(() => {
-    if (!currentUserId) return;
+  if (!currentUserId) return;
 
-    const unsubscribeUsers = subscribeToUsers((rawUsers) => {
-      const filtered = rawUsers.filter((u) => u.uid !== currentUserId);
+  const activeListeners: { [uid: string]: () => void } = {};
 
-      // 👇 Har bir user uchun real-time message listener
-      const updatedUsers = [...filtered];
+  const unsubscribeUsers = subscribeToUsers((rawUsers) => {
+    const filtered = rawUsers.filter((u) => u.uid !== currentUserId);
 
-      updatedUsers.forEach((user, index) => {
-        const chatId = [currentUserId, user.uid].sort().join("_");
+    const updatedUsers = [...filtered];
 
-        subscribeToLastMessageAndCount(chatId, currentUserId, (data) => {
-          updatedUsers[index] = {
-            ...user,
-            ...data,
-          };
-          setUsers([...updatedUsers]);
-          setAllUsers([...updatedUsers]);
-        });
+    filtered.forEach((user, index) => {
+      const chatId = [currentUserId, user.uid].sort().join("_");
+
+      // ❗ Prevent duplicate listeners
+      if (activeListeners[user.uid]) return;
+
+      const unsubscribe = subscribeToLastMessageAndCount(chatId, currentUserId, (data) => {
+        updatedUsers[index] = {
+          ...user,
+          ...data,
+        };
+        setUsers([...updatedUsers]);
+        setAllUsers([...updatedUsers]);
       });
-    });
 
-    return () => {
-      unsubscribeUsers(); // 🔁 cleanup on unmount
-    };
-  }, [currentUserId]);
+      activeListeners[user.uid] = unsubscribe;
+    });
+  });
+
+  return () => {
+    unsubscribeUsers();
+
+    // 🧹 Remove all message listeners
+    Object.values(activeListeners).forEach((unsubscribe) => unsubscribe());
+  };
+}, [currentUserId]);
+
 
   // 🔍 Search
   useEffect(() => {

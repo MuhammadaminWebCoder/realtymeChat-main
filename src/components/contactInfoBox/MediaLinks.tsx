@@ -20,11 +20,21 @@ const MediaLinks:React.FC<{mediaData:MediaLinksType}> = ({mediaData}) => {
           <p className="text-slate-400 mb-1 w-[80%] text-sm line-clamp-1">{mediaData?.aboutBio || 'About not found'}</p>
 
           <p className="font-semibold text-sm">Media, Links and doc</p>
-          <div className="gap-2 flex  mt-2">
-            {mediaData?.mediaPhoto ? mediaData?.mediaPhoto?.splice(0,4).map((item:string,ind:number) => (
-              <img className="rounded-md max-[500px]:w-20  max-[500px]:h-20 w-30 h-30" key={ind} src={item} alt="media more" />
-            )) : 'media not found'}
-          </div>
+          <div className="gap-2 flex mt-2">
+  {mediaData?.mediaPhoto && mediaData.mediaPhoto.length > 0 ? (
+    mediaData.mediaPhoto.slice(0, 4).map((item: string, ind: number) => (
+      <img
+        key={ind}
+        src={item}
+        alt="media more"
+        className="rounded-md max-[500px]:w-20 max-[500px]:h-20 w-30 h-30"
+      />
+    ))
+  ) : (
+    <p className="text-slate-400 text-sm">Media not found</p>
+  )}
+</div>
+
       </div>
     </div>
   )

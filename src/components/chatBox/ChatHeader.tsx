@@ -5,6 +5,7 @@ import { FaPhoneAlt } from "react-icons/fa";
 import { BsThreeDots } from "react-icons/bs";
 import { ArrowLeft } from "lucide-react";
 import { useContactInfo } from "@/store/zustandStore";
+import { useNavigate } from "react-router-dom";
 
 const ChatHeader: React.FC<{
   avatar: string;
@@ -12,9 +13,13 @@ const ChatHeader: React.FC<{
   username: string;
   setBackToUserList: (value: boolean) => void;
 }> = ({ avatar, isActive, username, setBackToUserList }) => {
-  const { setContactInfo } = useContactInfo();
+  const { setContactInfo,setUserChatOpen } = useContactInfo();
+  const navigate = useNavigate();
   const BackToUserList = () => {
     setBackToUserList(true);
+    setUserChatOpen(null)
+    navigate('/')
+    
   };
   return (
     <div className="bg-white h-15 dark:bg-slate-600 flex justify-between items-center px-5 py-1">
