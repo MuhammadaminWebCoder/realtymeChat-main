@@ -6,7 +6,6 @@ import {
   push,
   onChildRemoved,
   onChildChanged,
-  get,
   off,
   remove,
   update,
@@ -83,7 +82,7 @@ export function subscribeToMessages(
   // ❌ Buni olib tashlang
   // get(dbRef).then(...)
 
-  const addListener = onChildAdded(dbRef, (snap) => {
+  onChildAdded(dbRef, (snap) => {
     const val = snap.val() as Message;
     onAdd({ ...val, key: snap.key! });
   });
