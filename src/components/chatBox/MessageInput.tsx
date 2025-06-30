@@ -21,7 +21,7 @@ const MessageInput: React.FC<{ onSend: (text: string) => void }> = ({ onSend }) 
   return (
     <form
       onSubmit={HandleSubmitInput}
-      className="flex sticky bottom-0 w-full p-5 gap-3 items-end dark:bg-slate-800 z-10"
+      className="flex  w-full p-5 gap-3 items-end dark:bg-slate-800 z-10"
     >
       <div className="inputGroup-container !bg-slate-100 overflow-hidden rounded-[20px] flex-1 relative">
         <Smile className="absolute left-2 bottom-2 text-gray-500" />

@@ -63,8 +63,8 @@ useEffect(() => {
             setUserChatOpen={setUserChatOpen}
             setMessages={setMessages}
           />
-          <MessageInput onSend={onSend} />
       </div>
+          <MessageInput onSend={onSend} />
     </AnimatedSection>
   )
 }

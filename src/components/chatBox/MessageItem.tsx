@@ -74,7 +74,7 @@ const MessageItem: React.FC<Props> = ({
   return (
     <div
       ref={scrollRef}
-      className="h-[calc(100%-60px)] px-0 min-h-0 overflow-y-auto"
+      className="h-full px-0 min-h-0 overflow-y-auto"
       onClick={() => setSelectedId(null)}
     >
       <div className="p-4 !py-0 space-y-3 flex flex-col">
