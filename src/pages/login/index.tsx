@@ -28,6 +28,7 @@ import { writeUserToDB } from "@/services/writeUserToDB";
 import { setUserOnlineStatus } from "@/services/onlineStatus";
 import { toast } from "react-toastify";
 import { AnimatedSection } from "@/components/AnimatedSection";
+import { useContactInfo } from "@/store/zustandStore";
 
 const DEFAULT_IMAGE =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-439DWYBIlMKtzkqbQqBpg9YNVgT13pkhCoPXmad5lg3Dk0mdmBLPlPGLUYQhF73sNH4&usqp=CAU";
@@ -41,7 +42,8 @@ export default function Login() {
   const [file, setFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ email?: string; password?: string; username?: string }>({});
   const [loading, setLoading] = useState(false);
-
+  
+  const { setCurrentUser } = useContactInfo();
   const validate = () => {
     const newErrors: typeof errors = {};
     if (!email.includes("@gmail.com")) newErrors.email = "Email noto‘g‘ri!";
@@ -73,7 +75,6 @@ export default function Login() {
       } else {
         const res = await createUserWithEmailAndPassword(auth, email, password);
         user = res.user;
-
         finalPhotoURL = await uploadImage(user.uid);
         await updateProfile(user, {
           displayName: username,
@@ -89,17 +90,17 @@ export default function Login() {
         username: username || user.displayName || "NoName",
       };
 
-      localStorage.setItem("userData", JSON.stringify(userData));
-      localStorage.setItem("accessToken", await user.getIdToken());
+      localStorage.setItem("accessToken", await user.getIdToken()); // ✅ token saqlanadi
+      setCurrentUser(userData); // ✅ zustand userga saqlanadi
 
       await writeUserToDB(userData);
       setUserOnlineStatus();
+
       toast.success(`Xush kelibsiz, ${userData.displayName}`);
       setTimeout(() => location.reload(), 700);
     } catch (err: any) {
       if (err.code === "auth/email-already-in-use") {
-        // Auto-login bo‘lishini to‘xtatamiz:
-        auth.currentUser?.delete(); // notog‘ri yaratilgan userni olib tashlash
+        auth.currentUser?.delete();
       }
       const msg = mapAuthError(err.code);
       toast.error(msg);
@@ -125,11 +126,12 @@ export default function Login() {
         username: user.displayName ?? "Foydalanuvchi",
       };
 
-      localStorage.setItem("userData", JSON.stringify(userData));
       localStorage.setItem("accessToken", await user.getIdToken());
+      setCurrentUser(userData); // ✅ zustand userga saqlanadi
 
       await writeUserToDB(userData);
       setUserOnlineStatus();
+
       toast.success(`Xush kelibsiz, ${userData.displayName}`);
       setTimeout(() => location.reload(), 700);
     } catch (err: any) {

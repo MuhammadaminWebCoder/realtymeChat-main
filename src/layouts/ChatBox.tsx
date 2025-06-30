@@ -10,7 +10,7 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from "react"
 interface ChatBoxProps {
   messages: Message[]
   onSend: (text: string) => void
-  currentUserId: string | null
+  currentUserId: string | undefined
   currentUser:any
   userChatOpen: string | null
   setUserChatOpen: (val: string | null) => void
@@ -58,7 +58,7 @@ useEffect(() => {
       <div className="py-5 relative min-h-0 gap-4 flex-1">
           <MessageItem
             messages={messages}
-            currentUserId={currentUserId}
+            currentUserId={currentUserId ?? null}
             userChatOpen={userChatOpen}
             setUserChatOpen={setUserChatOpen}
             setMessages={setMessages}

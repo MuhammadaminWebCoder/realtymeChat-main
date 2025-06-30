@@ -8,7 +8,8 @@ export const useAuth = () => {
     mutationFn: (provider: "google"| "apple") => loginWithProvider(provider),
     onSuccess: (user) => {
       console.log("Provider login success:", user);
-      queryClient.invalidateQueries(["user"]);
+ queryClient.invalidateQueries({ queryKey: ["user"] });
+
     },
   });
 
@@ -16,7 +17,8 @@ export const useAuth = () => {
     mutationFn: ({ email, password }: { email: string; password: string }) => registerWithEmail(email, password),
     onSuccess: (user) => {
       console.log("Email register success:", user);
-      queryClient.invalidateQueries(["user"]);
+queryClient.invalidateQueries({ queryKey: ["user"] });
+
     },
   });
 
@@ -24,7 +26,8 @@ export const useAuth = () => {
     mutationFn: ({ email, password }: { email: string; password: string }) => loginWithEmail(email, password),
     onSuccess: (user) => {
       console.log("Email login success:", user);
-      queryClient.invalidateQueries(["user"]);
+ queryClient.invalidateQueries({ queryKey: ["user"] });
+
     },
   });
 

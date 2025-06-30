@@ -1,15 +1,18 @@
 import LoadingOverlay from '@/components/LoadingOverlay';
-import { lazy, Suspense } from 'react'
+import { useContactInfo } from '@/store/zustandStore';
+import { lazy, Suspense } from 'react';
+
+const FuturesLazy = lazy(() => import('@/futures/index'));
+const LoginLazy = lazy(() => import('@/pages/login'));
 
 export function UseAuthToken() {
-    const FutureLazy = lazy(()=> import('@/futures/index'))
-    const LogInLazy = lazy(()=> import('@/pages/login/index'))
-    const token = localStorage.getItem("accessToken");
-    
-    if (token) {
-        return <Suspense fallback={<LoadingOverlay/>}><FutureLazy/></Suspense>
-    }
-    else{
-        return <Suspense fallback={<LoadingOverlay/>}><LogInLazy/></Suspense>
-    }
+  const { currentUser, isUserLoaded } = useContactInfo();
+
+  if (!isUserLoaded) return <LoadingOverlay />;
+
+  return (
+    <Suspense fallback={<LoadingOverlay />}>
+      {currentUser ? <FuturesLazy /> : <LoginLazy />}
+    </Suspense>
+  );
 }

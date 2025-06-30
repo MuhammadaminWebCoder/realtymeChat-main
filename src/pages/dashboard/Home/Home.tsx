@@ -1,3 +1,4 @@
+// Home.tsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ChatBox from "@/layouts/ChatBox";
@@ -23,51 +24,47 @@ export interface Message {
 }
 
 const Home = () => {
-  const { id: otherUserId } = useParams(); // 👈 URL dan /chat/:id
+  const { id: otherUserId } = useParams();
   const {
     userChatOpen,
     setUserChatOpen,
     users,
     contactInfo,
+    currentUser,
   } = useContactInfo();
-
-  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-  const currentUserId = userData?.uid || null;
 
   const [messages, setMessages] = useState<Message[]>([]);
 
-  // ✅ Faqat bir marta userChatOpen ni path dan o‘rnatish
- useEffect(() => {
-    if (!userChatOpen && otherUserId) {
+  // ✅ Faqat bir marta URL dan userChatOpen ni o‘rnatish
+  useEffect(() => {
+    if (otherUserId && otherUserId !== userChatOpen) {
       setUserChatOpen(otherUserId);
     }
   }, [otherUserId, userChatOpen, setUserChatOpen]);
 
-  const receiverUser = users.find((u) => u.uid === userChatOpen);
   const chatId =
-    currentUserId && userChatOpen
-      ? [currentUserId, userChatOpen].sort().join("_")
+    currentUser?.uid && userChatOpen
+      ? [currentUser.uid, userChatOpen].sort().join("_")
       : null;
+
+  const receiverUser = users.find((u) => u.uid === userChatOpen);
 
   // ✅ Xabarlarni olish
   useEffect(() => {
-    if (!chatId || !currentUserId) return;
+    if (!chatId || !currentUser?.uid) return;
 
-    setMessages([]); // clear old messages
+    setMessages([]);
 
     const unsubscribe = subscribeToMessages(
       chatId,
       (message: ChatMessage) => {
-        // 🔘 Duplicate message filter
         setMessages((prev) => {
           const exists = prev.some((m) => m.key === message.key);
-          if (exists) return prev;
-          return [...prev, message];
+          return exists ? prev : [...prev, message];
         });
 
-        // ✅ Agar boshqa user yuborgan bo‘lsa, uni ko‘rildi deb belgilaymiz
         if (
-          message.senderId !== currentUserId &&
+          message.senderId !== currentUser.uid &&
           message.seen === false &&
           message.key
         ) {
@@ -85,15 +82,14 @@ const Home = () => {
     );
 
     return () => unsubscribe();
-  }, [chatId, currentUserId]);
+  }, [chatId, currentUser?.uid]);
 
-  // ✅ Xabar yuborish
   const handleSend = (text: string) => {
-    if (!text.trim() || !chatId || !currentUserId) return;
+    if (!text.trim() || !chatId || !currentUser?.uid) return;
 
     const msg: Message = {
       text,
-      senderId: currentUserId,
+      senderId: currentUser.uid,
       createdAt: Date.now(),
     };
 
@@ -108,7 +104,7 @@ const Home = () => {
       ) : (
         <ChatBox
           currentUser={receiverUser}
-          currentUserId={currentUserId}
+          currentUserId={currentUser?.uid}
           messages={messages}
           onSend={handleSend}
           userChatOpen={userChatOpen}

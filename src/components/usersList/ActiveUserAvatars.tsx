@@ -15,8 +15,9 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
-import { storage } from "@/firebase"; // Firebase storage
+import { auth, storage } from "@/firebase"; // Firebase storage
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { signOut } from "firebase/auth";
 
 const ActiveUserAvatars = () => {
   const { users, currentUser, setCurrentUser, setUserChatOpen } = useContactInfo();
@@ -25,14 +26,12 @@ const ActiveUserAvatars = () => {
 
   // Faqat bir marta userni olish
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("userData") as string);
-    setCurrentUser(user);
     setChooseImage(
-      user?.photoURL ||
-        user?.userAvatar ||
+      currentUser?.photoURL ||
+        currentUser?.userAvatar ||
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-439DWYBIlMKtzkqbQqBpg9YNVgT13pkhCoPXmad5lg3Dk0mdmBLPlPGLUYQhF73sNH4&usqp=CAU"
     );
-  }, []);
+  }, [currentUser]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -70,14 +69,26 @@ const ActiveUserAvatars = () => {
 };
 
 
-  const handleLogout = () => {
-    toast.success("Token removed. Redirecting...");
+const handleLogout = async () => {
+  try {
+    await signOut(auth); // ❗️ Firebase sessiyasini tozalaydi
+
+    localStorage.removeItem("userData");
+    localStorage.removeItem("accessToken");
+
+    const { setCurrentUser, setIsUserLoaded } = useContactInfo.getState();
+    setCurrentUser(null);
+    setIsUserLoaded(false);
+
+    toast.success("Chiqildi. Redirecting...");
     setTimeout(() => {
-      localStorage.removeItem("userData");
-      localStorage.removeItem("accessToken");
       location.reload();
     }, 700);
-  };
+  } catch (err) {
+    console.error("Logout failed:", err);
+    toast.error("Chiqishda xatolik yuz berdi.");
+  }
+};
 
   const activeUsers = users.filter((u) => u.isActive && u.uid !== currentUser?.uid);
 

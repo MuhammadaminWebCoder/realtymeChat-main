@@ -5,10 +5,9 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 const ChatListItem: React.FC<{ search: string }> = ({ search }) => {
-  const { setUserChatOpen, setUsers } = useContactInfo();
+  const { setUserChatOpen,currentUser, setUsers } = useContactInfo();
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-  const currentUser = JSON.parse(localStorage.getItem("userData") || "{}");
   const currentUserId = currentUser?.uid ?? null;
 
   useEffect(() => {
@@ -27,7 +26,7 @@ const ChatListItem: React.FC<{ search: string }> = ({ search }) => {
       // ❗ Prevent duplicate listeners
       if (activeListeners[user.uid]) return;
 
-      const unsubscribe = subscribeToLastMessageAndCount(chatId, currentUserId, (data) => {
+      const unsubscribe = subscribeToLastMessageAndCount(chatId, currentUserId!, (data) => {
         updatedUsers[index] = {
           ...user,
           ...data,
