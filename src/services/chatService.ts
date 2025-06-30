@@ -12,6 +12,7 @@ import {
   update,
   set,
   onValue,
+  onChildAdded,
 } from "firebase/database";
 
 export interface ChatMessage extends Message {
@@ -79,15 +80,13 @@ export function subscribeToMessages(
 ) {
   const dbRef = ref(db, `chats/${chatId}/messages`);
 
-  get(dbRef).then((snapshot) => {
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      Object.entries(data).forEach(([key, val]) => {
-        onAdd({ ...(val as Message), key });
-      });
-    }
-  });
+  // ❌ Buni olib tashlang
+  // get(dbRef).then(...)
 
+  const addListener = onChildAdded(dbRef, (snap) => {
+    const val = snap.val() as Message;
+    onAdd({ ...val, key: snap.key! });
+  });
 
   if (onRemove) onChildRemoved(dbRef, (snap) => onRemove(snap.key!));
   if (onChange)
@@ -100,6 +99,7 @@ export function subscribeToMessages(
     off(dbRef);
   };
 }
+
 
 export const markMessageAsSeen = async (chatId: string, messageKey: string) => {
   const messageRef = ref(db, `chats/${chatId}/messages/${messageKey}`);

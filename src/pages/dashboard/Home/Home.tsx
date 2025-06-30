@@ -86,7 +86,8 @@ const Home = () => {
 
   const handleSend = (text: string) => {
     if (!text.trim() || !chatId || !currentUser?.uid) return;
-
+    console.log("Sending message:", text);
+    
     const msg: Message = {
       text,
       senderId: currentUser.uid,
