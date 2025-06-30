@@ -20,7 +20,7 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { signOut } from "firebase/auth";
 
 const ActiveUserAvatars = () => {
-  const { users, currentUser, setCurrentUser, setUserChatOpen } = useContactInfo();
+  const { users, currentUser, setUserChatOpen } = useContactInfo();
   const [chooceImage, setChooseImage] = useState<string>(""); // preview uchun
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // upload uchun
 

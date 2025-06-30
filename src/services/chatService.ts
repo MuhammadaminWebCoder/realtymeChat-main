@@ -4,7 +4,6 @@ import { db } from "@/firebase";
 import {
   ref,
   push,
-  onChildAdded,
   onChildRemoved,
   onChildChanged,
   get,
@@ -12,9 +11,6 @@ import {
   remove,
   update,
   set,
-  query,
-  orderByChild,
-  limitToLast,
   onValue,
 } from "firebase/database";
 
@@ -92,10 +88,6 @@ export function subscribeToMessages(
     }
   });
 
-  const addListener = onChildAdded(dbRef, (snap) => {
-    const val = snap.val() as Message;
-    onAdd({ ...val, key: snap.key! });
-  });
 
   if (onRemove) onChildRemoved(dbRef, (snap) => onRemove(snap.key!));
   if (onChange)

@@ -11,7 +11,6 @@ function App() {
   const {
     setCurrentUser,
     setIsUserLoaded,
-    isUserLoaded
   } = useContactInfo();
 
   useEffect(() => {
